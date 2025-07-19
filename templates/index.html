@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Ending Rewriter</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Movie Ending Generator</h1>
+        
+        <div class="step" id="step1">
+            <h2>Step 1: Find Your Movie</h2>
+            <div class="input-group">
+                <input type="text" id="movieInput" placeholder="Enter movie name (e.g., 'Inception', 'The Matrix')">
+                <button onclick="checkMovie()">Find Movie</button>
+            </div>
+            <div id="movieResult" class="result-box"></div>
+        </div>
+        
+        <div class="step hidden" id="step2">
+            <h2>Step 2: Create Your Alternate Ending</h2>
+            <p>Movie: <strong id="confirmedMovie"></strong></p>
+            <div class="input-group">
+                <textarea id="promptInput" rows="5" placeholder="Describe your alternate ending (e.g., 'Make the protagonist stay in the dream', 'Give it a happy ending where everyone survives')"></textarea>
+                <button onclick="generateEnding()">Generate Ending</button>
+            </div>
+        </div>
+        
+        <div class="step hidden" id="step3">
+            <h2>Your Alternate Ending</h2>
+            <div class="result-section">
+                <h3>Full Alternate Ending</h3>
+                <div id="alternateEnding" class="result-box"></div>
+            </div>
+            
+            <div class="result-columns">
+                <div class="column">
+                    <h3>Visual Description</h3>
+                    <div id="visualDescription" class="result-box"></div>
+                    
+                    <h3>Production Notes</h3>
+                    <div id="productionNotes" class="result-box"></div>
+                </div>
+                
+                <div class="column">
+                    <h3>Narration Text</h3>
+                    <div id="narrationText" class="result-box"></div>
+                    
+                    <h3>Character Dialogue</h3>
+                    <div id="characterDialogue" class="result-box"></div>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3>Next Steps</h3>
+                <p>Your alternate ending is ready! Next we would:</p>
+                <ol>
+                    <li>Generate images from the visual description</li>
+                    <li>Use deepfake technology to animate characters</li>
+                    <li>Convert narration to audio using text-to-speech</li>
+                    <li>Compile everything into a final video</li>
+                </ol>
+                <button onclick="startOver()">Create Another Ending</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMovie = "";
+        
+        async function checkMovie() {
+            const movieInput = document.getElementById('movieInput');
+            const movie = movieInput.value.trim();
+            const resultBox = document.getElementById('movieResult');
+            
+            if (!movie) {
+                alert("Please enter a movie name");
+                return;
+            }
+            
+            // Show loading state
+            resultBox.innerHTML = "Checking IMSDB database...";
+            
+            try {
+                const response = await fetch('/check_movie', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ movie })
+                });
+                
+                const data = await response.json();
+                
+                if (data.exists) {
+                    currentMovie = movie;
+                    document.getElementById('confirmedMovie').textContent = movie;
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                    resultBox.innerHTML = `✅ "${movie}" found! Describe your alternate ending below.`;
+                    movieInput.value = "";
+                } else {
+                    resultBox.innerHTML = `❌ "${movie}" not found. ${data.error || 'Try another title.'}`;
+                }
+            } catch (error) {
+                resultBox.innerHTML = "❌ Error checking movie. Please try again.";
+                console.error(error);
+            }
+        }
+        
+        async function generateEnding() {
+            const prompt = document.getElementById('promptInput').value.trim();
+            const resultContainer = document.getElementById('alternateEnding');
+            const visualDescEl = document.getElementById('visualDescription');
+            const narrationEl = document.getElementById('narrationText');
+            const dialogueEl = document.getElementById('characterDialogue');
+            const notesEl = document.getElementById('productionNotes');
+            
+            if (!prompt) {
+                alert("Please describe your alternate ending");
+                return;
+            }
+            
+            // Show loading in all result areas
+            const loadingHTML = "Generating your alternate ending...";
+            resultContainer.innerHTML = loadingHTML;
+            visualDescEl.innerHTML = loadingHTML;
+            narrationEl.innerHTML = loadingHTML;
+            dialogueEl.innerHTML = loadingHTML;
+            notesEl.innerHTML = loadingHTML;
+            
+            // Show step 3
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/generate_ending', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        movie: currentMovie, 
+                        prompt: prompt 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    // Populate all sections
+                    resultContainer.textContent = data.alternate_ending;
+                    visualDescEl.textContent = data.visual_description;
+                    narrationEl.textContent = data.narration_text;
+                    dialogueEl.textContent = data.character_dialogue;
+                    notesEl.textContent = data.production_notes;
+                } else {
+                    resultContainer.innerHTML = `❌ Error: ${data.error || 'Generation failed. Please try again.'}`;
+                }
+            } catch (error) {
+                resultContainer.innerHTML = "❌ Network error. Please check your connection.";
+                console.error(error);
+            }
+        }
+        
+        function startOver() {
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('movieResult').innerHTML = "";
+            currentMovie = "";
+        }
+    </script>
+</body>
+</html>
