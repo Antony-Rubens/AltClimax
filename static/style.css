@@ -222,105 +222,89 @@ button:disabled {
     margin-top: 10px;
 }
 
-/* Media Controls */
-.media-controls {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    margin-top: 30px;
-}
+/* Media Controls - Removed video-specific styles */
 
-.media-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.card {
-    background-color: white;
-    border-radius: var(--border-radius);
-    padding: 25px;
-    box-shadow: var(--box-shadow);
-    height: 100%;
-}
-
-.media-icon {
-    width: 60px;
-    height: 60px;
-    background-color: rgba(67, 97, 238, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-    color: var(--primary-color);
-    font-size: 24px;
-}
-
-/* Gallery Styles */
+/* Enhanced Gallery Styles */
 .gallery-container {
     display: flex;
     align-items: center;
-    margin: 20px 0;
+    margin: 40px 0;
     width: 100%;
+    position: relative;
 }
 
 .gallery {
     flex: 1;
     text-align: center;
-    min-height: 250px;
+    min-height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: rgba(0,0,0,0.03);
+    border-radius: var(--border-radius);
+    padding: 20px;
 }
 
 .gallery img {
     max-width: 100%;
-    max-height: 250px;
+    max-height: 70vh;
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.gallery img:hover {
+    transform: scale(1.02);
 }
 
 .gallery-nav {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
     color: var(--primary-color);
-    padding: 10px;
+    padding: 15px;
     background-color: rgba(67, 97, 238, 0.1);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    z-index: 10;
 }
 
 .gallery-nav:hover {
     background-color: rgba(67, 97, 238, 0.2);
 }
 
-.image-counter {
-    text-align: center;
-    font-size: 0.9em;
-    color: var(--gray-color);
-    margin-top: 5px;
+.gallery-nav.prev {
+    left: 10px;
 }
 
-/* Audio/Video Players */
-audio, video {
+.gallery-nav.next {
+    right: 10px;
+}
+
+.image-counter {
+    text-align: center;
+    font-size: 1em;
+    color: var(--gray-color);
+    margin-top: 15px;
+}
+
+/* Audio Player - Keep only if needed for narration */
+audio {
     width: 100%;
-    margin-top: 20px;
+    margin: 30px 0;
     border-radius: var(--border-radius);
 }
 
-/* Next Steps */
-.next-steps {
-    text-align: center;
-    margin-top: 40px;
+/* Hide video elements */
+video, .video-container {
+    display: none !important;
 }
 
 /* Movie Display */
@@ -412,8 +396,18 @@ audio, video {
         flex-direction: column;
     }
     
-    .media-controls {
-        grid-template-columns: 1fr;
+    .gallery {
+        min-height: 300px;
+    }
+    
+    .gallery img {
+        max-height: 50vh;
+    }
+    
+    .gallery-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
     }
     
     .step {
@@ -429,4 +423,40 @@ audio, video {
 
 .fade-in {
     animation: fadeIn 0.5s ease forwards;
+}
+
+/* Image Grid for Multiple Images */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.image-grid-item {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    background-color: white;
+    padding: 10px;
+}
+
+.image-grid-item img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+}
+
+.image-grid-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.image-grid-caption {
+    padding: 15px;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--gray-color);
 }

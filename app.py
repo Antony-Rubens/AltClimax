@@ -18,6 +18,7 @@ from google.cloud.texttospeech import SsmlVoiceGender
 import base64
 from io import BytesIO
 from PIL import Image
+import subprocess
 
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
@@ -82,6 +83,8 @@ def init_db():
                  (dialogue_hash TEXT PRIMARY KEY, audio_path TEXT, timestamp TIMESTAMP)''')
     c.execute('''CREATE TABLE IF NOT EXISTS image_cache
                  (description_hash TEXT PRIMARY KEY, image_paths TEXT, timestamp TIMESTAMP)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS video_cache
+                 (video_hash TEXT PRIMARY KEY, video_path TEXT, timestamp TIMESTAMP)''')
     conn.commit()
     conn.close()
 
@@ -138,13 +141,11 @@ def get_movie_script(movie):
 
 def extract_component(text, component):
     try:
-        # More robust pattern that handles multi-line content and optional formatting
         pattern = rf"^{re.escape(component)}\s*:\s*(.*?)(?=\n\w+\s*:|$)"
         match = re.search(pattern, text, re.DOTALL | re.MULTILINE)
         if match:
             return match.group(1).strip()
         
-        # Fallback pattern if the first one fails
         pattern = rf"{re.escape(component)}\s*:\s*(.*?)(?=\n\|?$)"
         match = re.search(pattern, text, re.DOTALL)
         return match.group(1).strip() if match else f"Component {component} not found"
@@ -165,6 +166,20 @@ def generate_with_retry(model, prompt, max_retries=3, retry_delay=5):
             else:
                 raise
     raise Exception("Max retries exceeded for Gemini API")
+
+def get_audio_duration(audio_path):
+    try:
+        result = subprocess.run(
+            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', 
+             '-of', 'default=noprint_wrappers=1:nokey=1', audio_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        return float(result.stdout.strip())
+    except Exception as e:
+        app.logger.error(f"Error getting audio duration: {str(e)}")
+        return 5.0  # Default duration if we can't determine
 
 # ========================
 # ROUTES
@@ -212,19 +227,24 @@ def generate_script():
 
     try:
         context = script[:1500]
-        full_prompt = f"""Create an alternate ending for "{movie}" based on:
+        full_prompt = f"""Create a generic alternate ending inspired by stories similar to "{movie}" based on:
 {prompt}
 
 Original context (partial):
 {context}
 
+Important Guidelines:
+1. Replace specific character names with generic descriptions (e.g., "the brave captain" instead of "Jack Dawson")
+2. Avoid mentioning or generating images which has copyrighted elements like actor names, exact locations, or trademarked items
+3. Keep the essence of the story while making it original
+
 Respond EXACTLY in this format without any additional commentary:
 
 === Alternate Ending ===
-Visual: [Detailed scene description for image generation]
-Narration: [Narration text]
-Dialogue: [Character lines]
-Notes: [Production details]"""
+Visual: [Generic scene description using character types not names]
+Narration: [Narration text about character types]
+Dialogue: [Generic character lines without proper names]
+Notes: [Production details using generic terms]"""
         
         model = genai.GenerativeModel("gemini-2.5-pro")
         response = generate_with_retry(model, full_prompt)
@@ -324,13 +344,14 @@ def generate_audio():
 def generate_images():
     data = request.json
     description = data.get("description", "").strip()
+    num_images = min(int(data.get("num_images", 3)), 5)  # Max 5 images
     
     if not description:
         return jsonify({"error": "Description is required"}), 400
     
     try:
         # Check cache first
-        desc_hash = hashlib.md5(description.encode()).hexdigest()
+        desc_hash = hashlib.md5((description + str(num_images)).encode()).hexdigest()
         conn = sqlite3.connect('cache.db')
         c = conn.cursor()
         c.execute("SELECT image_paths FROM image_cache WHERE description_hash=?", (desc_hash,))
@@ -343,31 +364,35 @@ def generate_images():
                 "image_urls": json.loads(cached[0])
             })
         
-        # Generate new image using DALL-E 3
-        app.logger.info(f"Generating image with DALL-E 3 for: {description[:100]}...")
+        # Generate new images using DALL-E 3
+        app.logger.info(f"Generating {num_images} images with DALL-E 3 for: {description[:100]}...")
         
-        response = openai_client.images.generate(
-            model="dall-e-3",
-            prompt=description,
-            size="1024x1024",
-            quality="standard",
-            n=1
-        )
-        
-        # Download and save the image
-        image_url = response.data[0].url
-        img_response = requests.get(image_url)
-        img_response.raise_for_status()
-        
+        image_urls = []
         img_dir = os.path.join('static', 'images')
         os.makedirs(img_dir, exist_ok=True)
-        img_path = os.path.join(img_dir, f"{desc_hash}.png")
         
-        with open(img_path, "wb") as f:
-            f.write(img_response.content)
+        for i in range(num_images):
+            response = openai_client.images.generate(
+                model="dall-e-3",
+                prompt=f"{description} (variation {i+1})",
+                size="1024x1024",
+                quality="standard",
+                n=1
+            )
+            
+            # Download and save the image
+            image_url = response.data[0].url
+            img_response = requests.get(image_url)
+            img_response.raise_for_status()
+            
+            img_path = os.path.join(img_dir, f"{desc_hash}_{i}.png")
+            
+            with open(img_path, "wb") as f:
+                f.write(img_response.content)
+            
+            image_urls.append(f"/static/images/{desc_hash}_{i}.png")
         
         # Cache the result
-        image_urls = [f"/static/images/{desc_hash}.png"]
         c.execute("INSERT OR REPLACE INTO image_cache VALUES (?, ?, ?)",
                  (desc_hash, json.dumps(image_urls), datetime.now()))
         conn.commit()
@@ -396,15 +421,83 @@ def create_video():
         return jsonify({"error": "Both images and audio are required"}), 400
     
     try:
-        # In a real implementation, you would use FFmpeg or similar to combine
-        # For this example, we'll just return the first image and audio
-        result = {
-            "status": "success",
-            "video_url": image_urls[0],  # Replace with actual video processing
-            "message": "Video creation would be implemented here"
-        }
-        return jsonify(result)
+        # Create unique ID for this video
+        video_hash = hashlib.md5((str(image_urls) + audio_url).encode()).hexdigest()
+        output_path = os.path.join('static', 'videos', f"{video_hash}.mp4")
         
+        # Check if video already exists
+        conn = sqlite3.connect('cache.db')
+        c = conn.cursor()
+        c.execute("SELECT video_path FROM video_cache WHERE video_hash=?", (video_hash,))
+        cached = c.fetchone()
+        
+        if cached:
+            conn.close()
+            return jsonify({
+                "status": "success",
+                "video_url": cached[0]
+            })
+        
+        # Get audio file path and duration
+        audio_path = os.path.join('static', audio_url.lstrip('/static/'))
+        if not os.path.exists(audio_path):
+            return jsonify({"error": "Audio file not found"}), 404
+        
+        audio_duration = get_audio_duration(audio_path)
+        per_image_duration = audio_duration / len(image_urls)
+        
+        # Prepare FFmpeg command
+        ffmpeg_cmd = [
+            'ffmpeg',
+            '-y',  # Overwrite output file without asking
+        ]
+        
+        # Add input images
+        for img_url in image_urls:
+            img_path = os.path.join('static', img_url.lstrip('/static/'))
+            ffmpeg_cmd.extend([
+                '-loop', '1',
+                '-t', str(per_image_duration),
+                '-i', img_path
+            ])
+        
+        # Add audio input
+        ffmpeg_cmd.extend([
+            '-i', audio_path,
+            '-filter_complex',
+            f'concat=n={len(image_urls)}:v=1:a=0[v]',
+            '-map', '[v]',
+            '-map', f'{len(image_urls)}:a',
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            '-vf', 'scale=1920:1080',
+            '-c:a', 'aac',
+            '-shortest',
+            output_path
+        ])
+        
+        # Run FFmpeg
+        subprocess.run(ffmpeg_cmd, check=True)
+        
+        # Cache the result
+        video_url = f"/static/videos/{video_hash}.mp4"
+        c.execute("INSERT OR REPLACE INTO video_cache VALUES (?, ?, ?)",
+                 (video_hash, video_url, datetime.now()))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "video_url": video_url
+        })
+        
+    except subprocess.CalledProcessError as e:
+        app.logger.error(f"FFmpeg failed: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": "Video creation failed",
+            "error": str(e)
+        }), 500
     except Exception as e:
         app.logger.error(f"Video creation failed: {str(e)}")
         return jsonify({
@@ -432,13 +525,23 @@ def health_check():
         except:
             openai_status = False
         
+        # Check FFmpeg availability
+        ffmpeg_status = False
+        try:
+            subprocess.run(['ffmpeg', '-version'], check=True, 
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            ffmpeg_status = True
+        except:
+            ffmpeg_status = False
+        
         return jsonify({
-            "status": "healthy" if all([tts_status, openai_status]) else "degraded",
+            "status": "healthy" if all([tts_status, openai_status, ffmpeg_status]) else "degraded",
             "services": {
                 "text_to_speech": tts_status,
                 "database": True,
                 "gemini_api": True,
-                "openai_api": openai_status
+                "openai_api": openai_status,
+                "ffmpeg": ffmpeg_status
             }
         })
     except Exception as e:
