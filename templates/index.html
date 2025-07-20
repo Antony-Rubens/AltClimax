@@ -3,72 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Ending Rewriter</title>
+    <title>Movie Ending Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🎬 Movie Ending Generator</h1>
+        <header>
+            <h1><i class="fas fa-film"></i> Movie Ending Generator</h1>
+            <p class="subtitle">Create your own alternate endings for famous movies</p>
+        </header>
         
-        <div class="step" id="step1">
-            <h2>Step 1: Find Your Movie</h2>
-            <div class="input-group">
-                <input type="text" id="movieInput" placeholder="Enter movie name (e.g., 'Inception', 'The Matrix')">
-                <button onclick="checkMovie()">Find Movie</button>
+        <div class="step active" id="step1">
+            <div class="step-header">
+                <span class="step-number">1</span>
+                <h2>Find Your Movie</h2>
             </div>
-            <div id="movieResult" class="result-box"></div>
+            <div class="step-content">
+                <div class="input-group">
+                    <input type="text" id="movieInput" placeholder="Enter movie name (e.g., 'Inception', 'The Matrix')">
+                    <button class="primary-btn" onclick="checkMovie()">
+                        <i class="fas fa-search"></i> Find Movie
+                    </button>
+                </div>
+                <div id="movieResult" class="result-box"></div>
+            </div>
         </div>
         
-        <div class="step hidden" id="step2">
-            <h2>Step 2: Create Your Alternate Ending</h2>
-            <p>Movie: <strong id="confirmedMovie"></strong></p>
-            <div class="input-group">
-                <textarea id="promptInput" rows="5" placeholder="Describe your alternate ending (e.g., 'Make the protagonist stay in the dream', 'Give it a happy ending where everyone survives')"></textarea>
-                <button onclick="generateEnding()">Generate Ending</button>
+        <div class="step" id="step2">
+            <div class="step-header">
+                <span class="step-number">2</span>
+                <h2>Create Your Alternate Ending</h2>
+            </div>
+            <div class="step-content">
+                <div class="movie-display">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span id="confirmedMovie"></span>
+                </div>
+                <div class="input-group">
+                    <textarea id="promptInput" rows="5" placeholder="Describe your alternate ending..."></textarea>
+                    <button class="primary-btn" onclick="generateScript()">
+                        <i class="fas fa-magic"></i> Generate Script
+                    </button>
+                </div>
             </div>
         </div>
         
-        <div class="step hidden" id="step3">
-            <h2>Your Alternate Ending</h2>
-            <div class="result-section">
-                <h3>Full Alternate Ending</h3>
-                <div id="alternateEnding" class="result-box"></div>
+        <div class="step" id="step3">
+            <div class="step-header">
+                <span class="step-number">3</span>
+                <h2>Review Your Script</h2>
             </div>
-            
-            <div class="result-columns">
-                <div class="column">
-                    <h3>Visual Description</h3>
-                    <div id="visualDescription" class="result-box"></div>
-                    
-                    <h3>Production Notes</h3>
-                    <div id="productionNotes" class="result-box"></div>
+            <div class="step-content">
+                <div id="progressIndicator">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="progressBar" class="progress"></div>
+                        </div>
+                        <p id="progressMessage">Generating your script...</p>
+                    </div>
                 </div>
                 
-                <div class="column">
-                    <h3>Narration Text</h3>
-                    <div id="narrationText" class="result-box"></div>
+                <div id="scriptResults">
+                    <div class="result-section">
+                        <h3><i class="fas fa-scroll"></i> Full Alternate Ending</h3>
+                        <div id="alternateEnding" class="result-box"></div>
+                    </div>
                     
-                    <h3>Character Dialogue</h3>
-                    <div id="characterDialogue" class="result-box"></div>
+                    <div class="result-columns">
+                        <div class="column">
+                            <h3><i class="fas fa-image"></i> Visual Description</h3>
+                            <div id="visualDescription" class="result-box"></div>
+                            <h3><i class="fas fa-clipboard-list"></i> Production Notes</h3>
+                            <div id="productionNotes" class="result-box"></div>
+                        </div>
+                        
+                        <div class="column">
+                            <h3><i class="fas fa-microphone"></i> Narration Text</h3>
+                            <div id="narrationText" class="result-box"></div>
+                            <h3><i class="fas fa-comments"></i> Character Dialogue</h3>
+                            <div id="characterDialogue" class="result-box"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="next-steps">
+                        <button class="primary-btn" onclick="showMediaCreation()">
+                            <i class="fas fa-arrow-right"></i> Create Media Presentation
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <div class="next-steps">
-                <h3>Next Steps</h3>
-                <p>Your alternate ending is ready! Next we would:</p>
-                <ol>
-                    <li>Generate images from the visual description</li>
-                    <li>Use deepfake technology to animate characters</li>
-                    <li>Convert narration to audio using text-to-speech</li>
-                    <li>Compile everything into a final video</li>
-                </ol>
-                <button onclick="startOver()">Create Another Ending</button>
+        </div>
+        
+        <div class="step" id="step4">
+            <div class="step-header">
+                <span class="step-number">4</span>
+                <h2>Create Media Presentation</h2>
+            </div>
+            <div class="step-content">
+                <div class="media-controls">
+                    <div class="media-option card">
+                        <div class="media-icon">
+                            <i class="fas fa-volume-up"></i>
+                        </div>
+                        <h3>Generate Audio</h3>
+                        <p>Create narration and dialogue with text-to-speech</p>
+                        <button id="generateAudioBtn" class="secondary-btn" onclick="generateAudio()">
+                            <i class="fas fa-play"></i> Generate Audio
+                        </button>
+                        <div id="audioResult" class="hidden">
+                            <audio id="audioPlayer" controls></audio>
+                        </div>
+                    </div>
+                    
+                    <div class="media-option card">
+                        <div class="media-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <h3>Generate Images</h3>
+                        <p>Create scene visuals with AI</p>
+                        <button id="generateImagesBtn" class="secondary-btn" onclick="generateImages()">
+                            <i class="fas fa-camera"></i> Generate Images
+                        </button>
+                        <div id="imagesResult" class="hidden">
+                            <div class="gallery-container">
+                                <button class="gallery-nav prev" onclick="changeImage(-1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div class="gallery">
+                                    <img id="galleryImage" src="" alt="Generated scene">
+                                </div>
+                                <button class="gallery-nav next" onclick="changeImage(1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div id="imageCounter" class="image-counter"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="media-option card">
+                        <div class="media-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3>Create Final Video</h3>
+                        <p>Combine audio and images</p>
+                        <button id="createVideoBtn" class="secondary-btn" onclick="createVideo()" disabled>
+                            <i class="fas fa-film"></i> Create Video
+                        </button>
+                        <div id="videoResult" class="hidden">
+                            <video id="endingVideo" controls width="100%">
+                                <source src="" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="next-steps">
+                    <button class="primary-btn" onclick="startOver()">
+                        <i class="fas fa-redo"></i> Create Another Ending
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         let currentMovie = "";
+        let currentPrompt = "";
+        let generatedData = {};
+        let currentImageIndex = 0;
+        let audioUrl = null;
+        let imageUrls = [];
+        
+        // Initialize steps
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                if (index > 0) {
+                    step.classList.add('hidden');
+                    step.classList.remove('active');
+                }
+            });
+        });
         
         async function checkMovie() {
             const movieInput = document.getElementById('movieInput');
@@ -76,12 +192,11 @@
             const resultBox = document.getElementById('movieResult');
             
             if (!movie) {
-                alert("Please enter a movie name");
+                showAlert("Please enter a movie name", "error");
                 return;
             }
             
-            // Show loading state
-            resultBox.innerHTML = "Checking IMSDB database...";
+            resultBox.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Checking IMSDB database...</div>';
             
             try {
                 const response = await fetch('/check_movie', {
@@ -95,77 +210,273 @@
                 if (data.exists) {
                     currentMovie = movie;
                     document.getElementById('confirmedMovie').textContent = movie;
-                    document.getElementById('step1').classList.add('hidden');
-                    document.getElementById('step2').classList.remove('hidden');
-                    resultBox.innerHTML = `✅ "${movie}" found! Describe your alternate ending below.`;
+                    navigateToStep(2);
+                    resultBox.innerHTML = `<div class="success"><i class="fas fa-check-circle"></i> "${movie}" found! Describe your alternate ending below.</div>`;
                     movieInput.value = "";
                 } else {
-                    resultBox.innerHTML = `❌ "${movie}" not found. ${data.error || 'Try another title.'}`;
+                    resultBox.innerHTML = `<div class="error"><i class="fas fa-times-circle"></i> "${movie}" not found. ${data.error || 'Try another title.'}</div>`;
                 }
             } catch (error) {
-                resultBox.innerHTML = "❌ Error checking movie. Please try again.";
+                resultBox.innerHTML = '<div class="error"><i class="fas fa-times-circle"></i> Error checking movie. Please try again.</div>';
                 console.error(error);
             }
         }
         
-        async function generateEnding() {
+        async function generateScript() {
             const prompt = document.getElementById('promptInput').value.trim();
-            const resultContainer = document.getElementById('alternateEnding');
-            const visualDescEl = document.getElementById('visualDescription');
-            const narrationEl = document.getElementById('narrationText');
-            const dialogueEl = document.getElementById('characterDialogue');
-            const notesEl = document.getElementById('productionNotes');
+            const progressIndicator = document.getElementById('progressIndicator');
+            const scriptResults = document.getElementById('scriptResults');
             
             if (!prompt) {
-                alert("Please describe your alternate ending");
+                showAlert("Please describe your alternate ending", "error");
                 return;
             }
             
-            // Show loading in all result areas
-            const loadingHTML = "Generating your alternate ending...";
-            resultContainer.innerHTML = loadingHTML;
-            visualDescEl.innerHTML = loadingHTML;
-            narrationEl.innerHTML = loadingHTML;
-            dialogueEl.innerHTML = loadingHTML;
-            notesEl.innerHTML = loadingHTML;
-            
-            // Show step 3
-            document.getElementById('step2').classList.add('hidden');
-            document.getElementById('step3').classList.remove('hidden');
+            currentPrompt = prompt;
+            navigateToStep(3);
+            scriptResults.classList.add('hidden');
+            document.getElementById('progressMessage').textContent = "Generating your alternate ending script...";
+            updateProgressBar(30);
             
             try {
-                const response = await fetch('/generate_ending', {
+                const response = await fetch('/generate_script', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         movie: currentMovie, 
-                        prompt: prompt 
+                        prompt: currentPrompt 
+                    })
+                });
+                
+                updateProgressBar(70);
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    generatedData = data;
+                    updateProgressBar(100);
+                    
+                    setTimeout(() => {
+                        progressIndicator.classList.add('hidden');
+                        scriptResults.classList.remove('hidden');
+                    }, 500);
+                    
+                    document.getElementById('alternateEnding').textContent = data.alternate_ending;
+                    document.getElementById('visualDescription').textContent = data.visual_description;
+                    document.getElementById('narrationText').textContent = data.narration_text;
+                    document.getElementById('characterDialogue').textContent = data.character_dialogue;
+                    document.getElementById('productionNotes').textContent = data.production_notes;
+                } else {
+                    document.getElementById('progressMessage').textContent = 
+                        `❌ Error: ${data.message || 'Generation failed. Please try again.'}`;
+                    showAlert("Script generation failed", "error");
+                }
+            } catch (error) {
+                document.getElementById('progressMessage').textContent = 
+                    "❌ Network error. Please check your connection.";
+                showAlert("Network error occurred", "error");
+                console.error(error);
+            }
+        }
+        
+        async function generateAudio() {
+            const btn = document.getElementById('generateAudioBtn');
+            const audioResult = document.getElementById('audioResult');
+            const audioPlayer = document.getElementById('audioPlayer');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            
+            try {
+                const text = generatedData.narration_text + '\n\n' + generatedData.character_dialogue;
+                
+                const response = await fetch('/generate_audio', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    const timestamp = new Date().getTime();
+                    audioPlayer.src = data.audio_url + '?t=' + timestamp;
+                    audioResult.classList.remove('hidden');
+                    audioUrl = data.audio_url;
+                    
+                    setTimeout(() => {
+                        audioPlayer.play().catch(e => {
+                            console.error("Autoplay prevented:", e);
+                            showAlert("Click the play button to hear the audio", "info");
+                        });
+                    }, 500);
+                    
+                    if (imageUrls.length > 0) {
+                        document.getElementById('createVideoBtn').disabled = false;
+                    }
+                    
+                    showAlert("Audio generated successfully!", "success");
+                } else {
+                    showAlert(`Audio generation failed: ${data.message}`, "error");
+                }
+            } catch (error) {
+                showAlert("Audio generation failed. Please try again.", "error");
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> Generate Audio';
+            }
+        }
+        
+        async function generateImages() {
+            const btn = document.getElementById('generateImagesBtn');
+            const imagesResult = document.getElementById('imagesResult');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            
+            try {
+                const response = await fetch('/generate_images', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        description: generatedData.visual_description 
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (data.status === "success") {
-                    // Populate all sections
-                    resultContainer.textContent = data.alternate_ending;
-                    visualDescEl.textContent = data.visual_description;
-                    narrationEl.textContent = data.narration_text;
-                    dialogueEl.textContent = data.character_dialogue;
-                    notesEl.textContent = data.production_notes;
+                    imageUrls = data.image_urls;
+                    if (imageUrls.length > 0) {
+                        currentImageIndex = 0;
+                        updateGallery();
+                        imagesResult.classList.remove('hidden');
+                        
+                        if (audioUrl) {
+                            document.getElementById('createVideoBtn').disabled = false;
+                        }
+                        
+                        showAlert(`${imageUrls.length} images generated!`, "success");
+                    }
                 } else {
-                    resultContainer.innerHTML = `❌ Error: ${data.error || 'Generation failed. Please try again.'}`;
+                    showAlert(`Image generation failed: ${data.message}`, "error");
                 }
             } catch (error) {
-                resultContainer.innerHTML = "❌ Network error. Please check your connection.";
+                showAlert("Image generation failed. Please try again.", "error");
                 console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-camera"></i> Generate Images';
             }
         }
         
+        async function createVideo() {
+            const btn = document.getElementById('createVideoBtn');
+            const videoResult = document.getElementById('videoResult');
+            const videoPlayer = document.getElementById('endingVideo');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            
+            try {
+                const response = await fetch('/create_video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        image_urls: imageUrls,
+                        audio_url: audioUrl
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    videoPlayer.src = data.video_url;
+                    videoResult.classList.remove('hidden');
+                    showAlert("Video created successfully!", "success");
+                } else {
+                    showAlert(`Video creation failed: ${data.message}`, "error");
+                }
+            } catch (error) {
+                showAlert("Video creation failed. Please try again.", "error");
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-film"></i> Create Video';
+            }
+        }
+        
+        function showMediaCreation() {
+            navigateToStep(4);
+        }
+        
+        function updateProgressBar(percent) {
+            document.getElementById('progressBar').style.width = `${percent}%`;
+        }
+        
+        function updateGallery() {
+            if (imageUrls && imageUrls.length > 0) {
+                const imgElement = document.getElementById('galleryImage');
+                imgElement.src = imageUrls[currentImageIndex];
+                
+                const counter = document.getElementById('imageCounter');
+                counter.textContent = `${currentImageIndex + 1} of ${imageUrls.length}`;
+            }
+        }
+        
+        function changeImage(direction) {
+            if (!imageUrls || imageUrls.length === 0) return;
+            
+            currentImageIndex += direction;
+            
+            if (currentImageIndex < 0) {
+                currentImageIndex = imageUrls.length - 1;
+            } else if (currentImageIndex >= imageUrls.length) {
+                currentImageIndex = 0;
+            }
+            
+            updateGallery();
+        }
+        
         function startOver() {
-            document.getElementById('step3').classList.add('hidden');
-            document.getElementById('step1').classList.remove('hidden');
+            navigateToStep(1);
             document.getElementById('movieResult').innerHTML = "";
             currentMovie = "";
+            generatedData = {};
+            audioUrl = null;
+            imageUrls = [];
+        }
+        
+        function navigateToStep(stepNumber) {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                if (index === stepNumber - 1) {
+                    step.classList.remove('hidden');
+                    step.classList.add('active');
+                } else {
+                    step.classList.add('hidden');
+                    step.classList.remove('active');
+                }
+            });
+            
+            document.querySelector(`#step${stepNumber}`).scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'times-circle' : 'check-circle'}"></i>
+                ${message}
+            `;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.classList.add('fade-out');
+                setTimeout(() => alert.remove(), 500);
+            }, 3000);
         }
     </script>
 </body>
