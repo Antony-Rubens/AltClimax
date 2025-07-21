@@ -46,7 +46,7 @@ Clone the repository
 bash
 Copy
 Edit
-git clone https://github.com/your-username/alt-climax-ai.git
+git clone https://github.com/Antony-Rubens/AltClimax/tree/Final-product-submitted-for-hackathon
 cd alt-climax-ai
 Set up a virtual environment
 
