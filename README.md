@@ -1,5 +1,5 @@
 📌 Basic Details
-Team Name: CineMorph AI
+Team Name: DEVEMPHASIS
 
 Team Members: Antony Rubens,Alan Verghese Mathew,Mohammed Zayan,Haebel Ebby Chirayil 
 
